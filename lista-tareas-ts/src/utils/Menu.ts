@@ -1,22 +1,191 @@
 import promptSync from "prompt-sync";
+import { GestorTareas } from "../services/GestorTareas";
 import { Tarea } from "../models/Tarea";
-import { verTareas, buscarTarea, mostrarDetalles } from "../services/GestorTareas";
 
 const prompt = promptSync();
-// Importa la librería para pedir datos al usuario por consola.
 
-// Creamos la lista para guardar tareas.
-export let tareas: Tarea[] = new Array(100);
+// Instanciamos el Gestor central de forma encapsulada para evitar globales.
+const gestor = new GestorTareas();
 
-// Cuenta cuántas tareas reales fuimos agregando hasta el momento.
-export let numTareas: number = 0;
 
-// Guarda la opción que el usuario elige en el menú principal.
-let opcion: string = "";
+//MÓDULOS DE VALIDACIÓN (PE: Único propósito)
+
+
+//Solicita de forma interactiva el título de la tarea obligando a que no esté vacío.
+
+function solicitarTitulo(): string {
+  while (true) {
+    const titulo = (prompt("Ingresa el título: ") || "").trim();
+    if (titulo !== "") {
+      return titulo;
+    }
+    console.log("Error: El título no puede quedar vacío. Intenta de nuevo.");
+  }
+}
+
+// Solicita y normaliza el estado de la tarea verificando opciones permitidas.
+
+function solicitarEstado(): string {
+  const estadosValidos = ["pendiente", "en curso", "terminada"];
+  while (true) {
+    const estado = (prompt("Ingresa el estado (En curso, Pendiente, Terminada): ") || "")
+      .trim()
+      .toLowerCase();
+    
+    if (estadosValidos.includes(estado)) {
+      if (estado === "pendiente") return "Pendiente";
+      if (estado === "en curso") return "En curso";
+      if (estado === "terminada") return "Terminada";
+    }
+    console.log("Error: Estado no válido. Escribe 'Pendiente', 'En curso' o 'Terminada'.");
+  }
+}
+
+//Solicita y valida que la fecha de vencimiento cumpla con un formato de fecha real.
+
+function solicitarVencimiento(): string {
+  while (true) {
+    const vencimiento = (prompt("Ingresa la fecha de vencimiento (AAAA-MM-DD, opcional): ") || "").trim();
+    if (vencimiento === "") {
+      return "Sin fecha";
+    }
+    const fechaPrueba = new Date(vencimiento);
+    if (!isNaN(fechaPrueba.getTime())) {
+      return vencimiento;
+    }
+    console.log("Error: Fecha inválida. Escribe un formato real como AAAA-MM-DD (ej: 2026-12-31).");
+  }
+}
+
+//Solicita y valida el nivel de dificultad asignado a la tarea.
+
+function solicitarDificultad(): string {
+  const dificultadesValidas = ["fácil", "facil", "medio", "difícil", "dificil"];
+  while (true) {
+    const dificultad = (prompt("Ingresa la dificultad (fácil, medio, difícil): ") || "")
+      .trim()
+      .toLowerCase();
+
+    if (dificultadesValidas.includes(dificultad)) {
+      if (dificultad === "facil" || dificultad === "fácil") return "Fácil";
+      if (dificultad === "medio") return "Medio";
+      if (dificultad === "dificil" || dificultad === "difícil") return "Difícil";
+    }
+    console.log("Error: Dificultad no válida. Escribe 'fácil', 'medio' o 'difícil'.");
+  }
+}
+
+//Procedimiento encargado de imprimir de manera prolija una tarea.
+ 
+function mostrarTareaEstilizada(tarea: Tarea): void {
+  console.log(`\n--- Tarea ID: ${tarea.id} ---`);
+  console.log(`Título: ${tarea.titulo}`);
+  console.log(`Descripción: ${tarea.descripcion}`);
+  console.log(`Estado: ${tarea.estado}`);
+  console.log(`Dificultad: ${tarea.dificultad}`);
+  console.log(`Fecha de Creación: ${tarea.fechaCreacion}`);
+  console.log(`Fecha de Vencimiento: ${tarea.fechaVencimiento}`);
+}
+
+// ==========================================
+//          ACCIONES DEL MENÚ PRINCIPAL
+// ==========================================
+
+//Maneja el submenú de visualización y filtrado de tareas.
+
+function verTareas(): void {
+  console.clear();
+  console.log("¿Qué tarea deseas ver?");
+  console.log("1.Todas");
+  console.log("2.Pendientes");
+  console.log("3.Terminadas");
+  console.log("4.En Curso");
+  console.log("5.Volver");
+  const subOpcion = prompt("Elige una opción: ") || "";
+
+  let tareasFiltradas: Tarea[] = [];
+
+  switch (subOpcion) {
+    case "1":
+      tareasFiltradas = gestor.obtenerTodas();
+      break;
+    case "2":
+      tareasFiltradas = gestor.filtrarPorEstado("Pendiente");
+      break;
+    case "3":
+      tareasFiltradas = gestor.filtrarPorEstado("Terminada");
+      break;
+    case "4":
+      tareasFiltradas = gestor.filtrarPorEstado("En curso");
+      break;
+    case "5":
+      return;
+    default:
+      console.log("Opción no válida.");
+      prompt("\nPresiona Enter para continuar...");
+      return;
+  }
+
+  console.clear();
+  if (tareasFiltradas.length === 0) {
+    console.log("No hay tareas para mostrar en esta categoría.");
+  } else {
+    // PF: Uso de función de orden superior para iterar de manera declarativa
+    tareasFiltradas.forEach(mostrarTareaEstilizada);
+  }
+
+  prompt("\nPresiona Enter para continuar...");
+}
+
+// Solicita un término de búsqueda y ejecuta el algoritmo recursivo del gestor.
+
+function buscarTarea(): void {
+  console.clear();
+  console.log("--- Búsqueda de Tarea (Lógica Recursiva) ---");
+  const termino = prompt("Ingresa el título, descripción o estado de la tarea a buscar: ") || "";
+
+  // Ejecuta la búsqueda de forma lógica recursiva
+  const resultados = gestor.buscarRecursivo(termino);
+
+  if (resultados.length === 0) {
+    console.log(`\nNo se encontraron tareas que coincidan con: "${termino}"`);
+  } else {
+    console.log(`\nSe encontraron ${resultados.length} coincidencia(s):`);
+    resultados.forEach(mostrarTareaEstilizada);
+  }
+
+  prompt("\nPresiona Enter para continuar...");
+}
+
+//Consulta de detalles interactivos ingresando texto libre.
+
+function mostrarDetalles(): void {
+  console.clear();
+  const estadoBuscado = prompt("Ingresa el estado de la tarea que quieres ver (Pendiente, Terminada, En Curso, Todas): ") || "";
+  
+  let tareasFiltradas: Tarea[] = [];
+  if (estadoBuscado.toLowerCase() === "todas") {
+    tareasFiltradas = gestor.obtenerTodas();
+  } else {
+    tareasFiltradas = gestor.filtrarPorEstado(estadoBuscado);
+  }
+
+  console.clear();
+  if (tareasFiltradas.length === 0) {
+    console.log(`No hay tareas que coincidan con el estado "${estadoBuscado}".`);
+  } else {
+    tareasFiltradas.forEach(mostrarTareaEstilizada);
+  }
+
+  prompt("\nPresiona Enter para continuar...");
+}
+
+// Bucle principal de ejecución del Menú por consola.
 
 export function iniciarMenu(): void {
+  let opcion: string = "";
   do {
-    console.clear(); // Limpia la pantalla para que el menú se vea ordenado.
+    console.clear();
     console.log("Bienvenido!\n");
     console.log("¿Qué deseas hacer?");
     console.log("1.Ver mis tareas");
@@ -29,105 +198,34 @@ export function iniciarMenu(): void {
 
     switch (opcion) {
       case "1":
-        verTareas(); // Va a la función para listar las tareas.
+        verTareas();
         break;
 
       case "2":
-        buscarTarea(); // Va a la función para buscar por texto.
+        buscarTarea();
         break;
 
       case "3":
-        // Revisa si todavía queda espacio en la lista de 10 tareas.
-        if (numTareas < tareas.length) {
-          
-          // --- VALIDAR TÍTULO ---
-          let titulo = "";
-          while (true) {
-            // .trim() quita los espacios vacíos al principio y al final.
-            titulo = (prompt("Ingresa el título: ") || "").trim();
-            if (titulo !== "") {
-              break; // Si escribió algo de texto, sale del bucle y continúa.
-            }
-            console.log("Error: El título no puede quedar vacío. Intenta de nuevo.");
-          }
+        console.clear();
+        console.log("--- Agregar Nueva Tarea ---");
+        const titulo = solicitarTitulo();
+        const descripcion = prompt("Ingresa la descripción: ") || "";
+        const estado = solicitarEstado();
+        const dificultad = solicitarDificultad();
+        const vencimiento = solicitarVencimiento();
 
-          // La descripción es opcional. Si presiona Enter, se guarda vacía.
-          let descripcion = prompt("Ingresa la descripción: ") || "";
-
-          // --- VALIDAR ESTADO ---
-          let estado = "";
-          const estadosValidos = ["pendiente", "en curso", "terminada"];
-          while (true) {
-            // Pasamos a minúsculas lo que escriba para comparar más fácil.
-            estado = (prompt("Ingresa el estado (En curso, Pendiente, Terminada): ") || "").trim().toLowerCase();
-            if (estadosValidos.includes(estado)) {
-              // Guardamos el texto con las mayúsculas prolijas.
-              if (estado === "pendiente") estado = "Pendiente";
-              if (estado === "en curso") estado = "En curso";
-              if (estado === "terminada") estado = "Terminada";
-              break; // Si es un estado correcto, sale del bucle.
-            }
-            console.log("Error: Estado no válido. Escribe 'Pendiente', 'En curso' o 'Terminada'.");
-          }
-
-          // --- VALIDAR FECHA DE VENCIMIENTO ---
-          let vencimiento = "";
-          while (true) {
-            vencimiento = (prompt("Ingresa la fecha de vencimiento (AAAA-MM-DD, opcional): ") || "").trim();
-            if (vencimiento === "") {
-              vencimiento = "Sin fecha"; // Si da Enter, queda este texto por defecto.
-              break; 
-            }
-            // Revisa si el texto ingresado se puede transformar en una fecha de verdad.
-            const fechaPrueba = new Date(vencimiento);
-            if (!isNaN(fechaPrueba.getTime())) {
-              break; // Si la fecha es real y lógica, sale del bucle.
-            }
-            console.log("Error: Fecha inválida. Escribe un formato real como AAAA-MM-DD (ej: 2026-12-31).");
-          }
-
-          // --- VALIDAR DIFICULTAD ---
-          let dificultad = "";
-          const dificultadesValidas = ["fácil", "facil", "medio", "difícil", "dificil"];
-          while (true) {
-            dificultad = (prompt("Ingresa la dificultad (fácil, medio, difícil): ") || "").trim().toLowerCase();
-            if (dificultadesValidas.includes(dificultad)) {
-              // Guardamos el texto corregido con su acento correspondiente.
-              if (dificultad === "facil" || dificultad === "fácil") dificultad = "Fácil";
-              if (dificultad === "medio") dificultad = "Medio";
-              if (dificultad === "dificil" || dificultad === "difícil") dificultad = "Difícil";
-              break; 
-            }
-            console.log("Error: Dificultad no válida. Escribe 'fácil', 'medio' o 'difícil'.");
-          }
-
-          // Armamos el objeto de la nueva tarea con los datos ya revisados.
-          const nuevaTarea: Tarea = {
-            titulo: titulo,
-            descripcion: descripcion,
-            estado: estado,
-            fechaCreacion: new Date().toLocaleString(), // Pone la fecha y hora actual del sistema.
-            fechaVencimiento: vencimiento,
-            dificultad: dificultad,
-          };
-
-          // Guarda la tarea en la posición libre de la lista e incrementa el contador.
-          tareas[numTareas] = nuevaTarea;
-          numTareas++; 
-
-          console.log("\n¡Tarea agregada con éxito!");
-        } else {
-          console.log("\n¡No se pueden agregar más tareas! El espacio está lleno.");
-        }
+        gestor.agregarTarea(titulo, descripcion, estado, dificultad, vencimiento);
+        
+        console.log("\n¡Tarea agregada con éxito!");
         prompt("Presiona Enter para continuar...");
         break;
 
       case "4":
-        mostrarDetalles(); // Va a la función para ver tareas detalladas.
+        mostrarDetalles();
         break;
 
       case "5":
-        console.log("Salir"); // Termina el bucle y cierra el programa.
+        console.log("\n¡Saliendo de la aplicación! Que tengas un gran día.");
         break;
 
       default:
