@@ -5,15 +5,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const prompt_sync_1 = __importDefault(require("prompt-sync"));
 const prompt = (0, prompt_sync_1.default)();
-// Creamos un arreglo (array) para guardar como maximo 10 tareas.
-// Cada elemento será un objeto con la estructura de la interfaz Tarea.
-let tareas = new Array(10);
-// Variable que lleva la cuenta de cuántas tareas se han agregado.
+// Creamos la lista para guardar tareas.
+let tareas = new Array(100);
+// Cuenta cuántas tareas reales fuimos agregando hasta el momento.
 let numTareas = 0;
-// Variable que guarda la opción que el usuario elige del menú.
+// Guarda la opción que el usuario elige en el menú principal.
 let opcion = "";
 do {
-    console.clear(); // Limpia la consola antes de mostrar el menú.
+    console.clear(); // Limpia la pantalla para que el menú se vea ordenado.
     console.log("Bienvenido!\n");
     console.log("¿Qué deseas hacer?");
     console.log("1.Ver mis tareas");
@@ -21,37 +20,91 @@ do {
     console.log("3.Agregar tarea");
     console.log("4.Ver Detalles de Tareas");
     console.log("5.Salir\n");
-    // Pide al usuario que elija una opción.
     opcion = prompt("Elige una opción: ") || "";
-    // Estructura switch: ejecuta una parte del código según la opción elegida.
     switch (opcion) {
         case "1":
-            verTareas(); // Llama a la función para ver tareas.
+            verTareas(); // Va a la función para listar las tareas.
             break;
         case "2":
-            buscarTarea(); // Llama a la función para buscar tareas.
+            buscarTarea(); // Va a la función para buscar por texto.
             break;
         case "3":
-            // Verifica si hay espacio en el array para agregar una nueva tarea.
+            // Revisa si todavía queda espacio en la lista de 10 tareas.
             if (numTareas < tareas.length) {
-                // Pide los datos al usuario.
-                let titulo = prompt("Ingresa el título: ") || "";
+                // --- VALIDAR TÍTULO ---
+                let titulo = "";
+                while (true) {
+                    // .trim() quita los espacios vacíos al principio y al final.
+                    titulo = (prompt("Ingresa el título: ") || "").trim();
+                    if (titulo !== "") {
+                        break; // Si escribió algo de texto, sale del bucle y continúa.
+                    }
+                    console.log("Error: El título no puede quedar vacío. Intenta de nuevo.");
+                }
+                // La descripción es opcional. Si presiona Enter, se guarda vacía.
                 let descripcion = prompt("Ingresa la descripción: ") || "";
-                let estado = prompt("Ingresa el estado (En curso, Pendiente, Terminada): ") || "";
-                let vencimiento = prompt("Ingresa la fecha de vencimiento (opcional): ") || "";
-                let dificultad = prompt("Ingresa la dificultad (fácil, medio, difícil): ") || "";
-                // Crea un objeto Tarea con los datos ingresados.
+                // --- VALIDAR ESTADO ---
+                let estado = "";
+                const estadosValidos = ["pendiente", "en curso", "terminada"];
+                while (true) {
+                    // Pasamos a minúsculas lo que escriba para comparar más fácil.
+                    estado = (prompt("Ingresa el estado (En curso, Pendiente, Terminada): ") || "").trim().toLowerCase();
+                    if (estadosValidos.includes(estado)) {
+                        // Guardamos el texto con las mayúsculas prolijas.
+                        if (estado === "pendiente")
+                            estado = "Pendiente";
+                        if (estado === "en curso")
+                            estado = "En curso";
+                        if (estado === "terminada")
+                            estado = "Terminada";
+                        break; // Si es un estado correcto, sale del bucle.
+                    }
+                    console.log("Error: Estado no válido. Escribe 'Pendiente', 'En curso' o 'Terminada'.");
+                }
+                // --- VALIDAR FECHA DE VENCIMIENTO ---
+                let vencimiento = "";
+                while (true) {
+                    vencimiento = (prompt("Ingresa la fecha de vencimiento (AAAA-MM-DD, opcional): ") || "").trim();
+                    if (vencimiento === "") {
+                        vencimiento = "Sin fecha"; // Si da Enter, queda este texto por defecto.
+                        break;
+                    }
+                    // Revisa si el texto ingresado se puede transformar en una fecha de verdad.
+                    const fechaPrueba = new Date(vencimiento);
+                    if (!isNaN(fechaPrueba.getTime())) {
+                        break; // Si la fecha es real y lógica, sale del bucle.
+                    }
+                    console.log("Error: Fecha inválida. Escribe un formato real como AAAA-MM-DD (ej: 2026-12-31).");
+                }
+                // --- VALIDAR DIFICULTAD ---
+                let dificultad = "";
+                const dificultadesValidas = ["fácil", "facil", "medio", "difícil", "dificil"];
+                while (true) {
+                    dificultad = (prompt("Ingresa la dificultad (fácil, medio, difícil): ") || "").trim().toLowerCase();
+                    if (dificultadesValidas.includes(dificultad)) {
+                        // Guardamos el texto corregido con su acento correspondiente.
+                        if (dificultad === "facil" || dificultad === "fácil")
+                            dificultad = "Fácil";
+                        if (dificultad === "medio")
+                            dificultad = "Medio";
+                        if (dificultad === "dificil" || dificultad === "difícil")
+                            dificultad = "Difícil";
+                        break;
+                    }
+                    console.log("Error: Dificultad no válida. Escribe 'fácil', 'medio' o 'difícil'.");
+                }
+                // Armamos el objeto de la nueva tarea con los datos ya revisados.
                 const nuevaTarea = {
                     titulo: titulo,
                     descripcion: descripcion,
                     estado: estado,
-                    fechaCreacion: new Date().toLocaleString(),
+                    fechaCreacion: new Date().toLocaleString(), // Pone la fecha y hora actual del sistema.
                     fechaVencimiento: vencimiento,
                     dificultad: dificultad,
                 };
-                // Guarda la tarea en el array en la posición correspondiente.
+                // Guarda la tarea en la posición libre de la lista e incrementa el contador.
                 tareas[numTareas] = nuevaTarea;
-                numTareas++; // Incrementa el contador de tareas.
+                numTareas++;
                 console.log("\n¡Tarea agregada con éxito!");
             }
             else {
@@ -60,10 +113,10 @@ do {
             prompt("Presiona Enter para continuar...");
             break;
         case "4":
-            mostrarDetalles(); // Llama a la función que muestra tareas por estado.
+            mostrarDetalles(); // Va a la función para ver tareas detalladas.
             break;
         case "5":
-            console.log("Salir"); // Finaliza el programa.
+            console.log("Salir"); // Termina el bucle y cierra el programa.
             break;
         default:
             console.log("Opción no válida. Intenta de nuevo.");
@@ -72,11 +125,10 @@ do {
     }
 } while (opcion !== "5");
 // --- FUNCIÓN VER TAREAS ---
-// Muestra una lista de tareas filtrada por estado o todas.
+// Muestra una lista resumida de tareas según la opción elegida.
 function verTareas() {
-    console.clear(); // Limpia la consola al entrar a esta función
+    console.clear();
     let subOpcion;
-    // Muestra un submenú para que el usuario elija qué tipo de tareas ver
     console.log("¿Qué tarea deseas ver?");
     console.log("1.Todas");
     console.log("2.Pendientes");
@@ -84,8 +136,6 @@ function verTareas() {
     console.log("4.En Curso");
     console.log("5.Volver");
     subOpcion = prompt("Elige una opción: ") || "";
-    // Pide al usuario que ingrese la opción deseada.
-    // Si no ingresa nada, se guarda una cadena vacía "".
     switch (subOpcion) {
         case "1":
             console.clear();
@@ -93,29 +143,27 @@ function verTareas() {
             if (numTareas === 0) {
                 console.log("No tienes tareas agregadas.");
             }
-            else { // Recorre todas las tareas y las muestra
+            else {
+                // Recorre solo las tareas guardadas para no mostrar los espacios vacíos del array.
                 for (let i = 0; i < numTareas; i++) {
-                    const tareaActual = tareas[i]; // Guarda la tarea actual en una variable para usarla más fácilmente.
+                    const tareaActual = tareas[i];
                     console.log("\n--- Tarea " + (i + 1) + " ---");
-                    // Muestra un separador con el número de tarea.
                     console.log("Título: " + tareaActual.titulo);
                     console.log("Descripción: " + tareaActual.descripcion);
                     console.log("Estado: " + tareaActual.estado);
                     console.log("Dificultad: " + tareaActual.dificultad);
                     console.log("Fecha de Creación: " + tareaActual.fechaCreacion);
                     console.log("Fecha de Vencimiento: " + tareaActual.fechaVencimiento);
-                    // Muestra todos los detalles de la tarea.
                 }
             }
             break;
         case "2":
-            console.clear(); // Solo muestra las tareas cuyo estado es "Pendiente"
+            console.clear();
             console.log("Tus tareas pendientes:");
-            let contadorPendientes = 0;
-            // Contador para saber cuántas tareas cumplen la condición.
+            let contadorPendientes = 0; // Lleva la cuenta de cuántas tareas pendientes encontramos.
             for (let i = 0; i < numTareas; i++) {
                 const tareaActual = tareas[i];
-                if (tareaActual.estado && tareaActual.estado.toLowerCase() === "pendiente") { // Solo muestra las tareas cuyo estado es "Pendiente", ignorando mayúsculas/minúsculas.
+                if (tareaActual.estado && tareaActual.estado.toLowerCase() === "pendiente") {
                     console.log("\n--- Tarea " + (i + 1) + " ---");
                     console.log("Título: " + tareaActual.titulo);
                     console.log("Estado: " + tareaActual.estado);
@@ -133,7 +181,6 @@ function verTareas() {
             for (let i = 0; i < numTareas; i++) {
                 const tareaActual = tareas[i];
                 if (tareaActual.estado && tareaActual.estado.toLowerCase() === "terminada") {
-                    // Filtra tareas terminadas
                     console.log("\n--- Tarea " + (i + 1) + " ---");
                     console.log("Título: " + tareaActual.titulo);
                     console.log("Estado: " + tareaActual.estado);
@@ -151,7 +198,6 @@ function verTareas() {
             for (let i = 0; i < numTareas; i++) {
                 const tareaActual = tareas[i];
                 if (tareaActual.estado && tareaActual.estado.toLowerCase() === "en curso") {
-                    // Filtra tareas en curso
                     console.log("\n--- Tarea " + (i + 1) + " ---");
                     console.log("Título: " + tareaActual.titulo);
                     console.log("Estado: " + tareaActual.estado);
@@ -164,28 +210,21 @@ function verTareas() {
             break;
         case "5":
             console.log("Volviendo...");
-            // Opción para volver al menú principal sin mostrar nada.
             break;
         default:
             console.log("Opción no válida.");
-            // Si el usuario ingresa cualquier otra cosa.
             break;
     }
     prompt("\nPresiona Enter para continuar...");
-    // Pausa para que el usuario pueda leer la información antes de limpiar la consola.
 }
 // --- FUNCIÓN MOSTRAR DETALLES ---
-// Muestra todas las tareas o las que tienen un estado específico.
+// Muestra todos los datos de las tareas filtrando por el estado que el usuario escriba.
 function mostrarDetalles() {
     console.clear();
-    // Limpia la consola al ingresar a la función
     let estadoBuscado = prompt("Ingresa el estado de la tarea que quieres ver (Pendiente, Terminada, En Curso, Todas): ") || "";
-    // Pide al usuario el estado de las tareas que desea ver.
-    let contador = 0;
-    // Contador de tareas encontradas
+    let contador = 0; // Cuenta cuántas tareas coinciden con lo buscado.
     console.log("\nMostrando detalles de tareas: " + estadoBuscado);
     if (estadoBuscado.toLowerCase() === "todas") {
-        // Muestra todas las tareas
         for (let i = 0; i < numTareas; i++) {
             const tareaActual = tareas[i];
             console.log("\n--- Tarea " + (i + 1) + " ---");
@@ -199,9 +238,9 @@ function mostrarDetalles() {
         }
     }
     else {
-        // Muestra solo las tareas del estado ingresado
         for (let i = 0; i < numTareas; i++) {
             const tareaActual = tareas[i];
+            // Compara sin importar si el usuario usó mayúsculas o minúsculas.
             if (tareaActual.estado.toLowerCase() === estadoBuscado.toLowerCase()) {
                 console.log("\n--- Tarea " + (i + 1) + " ---");
                 console.log("Título: " + tareaActual.titulo);
@@ -220,39 +259,31 @@ function mostrarDetalles() {
     prompt("\nPresiona Enter para continuar...");
 }
 // --- FUNCIÓN BUSCAR TAREAS ---
-// Permite al usuario buscar una tarea por una palabra en el título, descripción o estado.
+// Busca coincidencias de texto dentro de títulos, descripciones o estados.
 function buscarTarea() {
     console.clear();
-    // Limpia la consola al ingresar
     console.log("--- Búsqueda de Tarea ---");
     let terminoBusqueda = prompt("Ingresa el título, descripción o estado de la tarea a buscar: ") || "";
-    // Pide al usuario una palabra o frase para buscar en las tareas
     let terminoMinusc = terminoBusqueda.toLowerCase();
-    // Convierte el término a minúsculas para comparar sin importar mayúsculas/minúsculas
     let contadorResultados = 0;
-    // Contador de cuántas tareas coinciden con la búsqueda
     for (let i = 0; i < numTareas; i++) {
         const tareaActual = tareas[i];
-        // Guarda la tarea actual en una variable temporal
+        // .includes() revisa si la palabra buscada está metida dentro del texto de la tarea.
         if (tareaActual.titulo.toLowerCase().includes(terminoMinusc) ||
             tareaActual.descripcion.toLowerCase().includes(terminoMinusc) ||
             tareaActual.estado.toLowerCase().includes(terminoMinusc)) {
-            // Verifica si el término de búsqueda está en título, descripción o estado
             console.log("\n--- Coincidencia Encontrada (Tarea " + (i + 1) + ") ---");
             console.log("Título: " + tareaActual.titulo);
             console.log("Descripción: " + tareaActual.descripcion);
             console.log("Estado: " + tareaActual.estado);
-            console.log("Dificulnpx tscad: " + tareaActual.dificultad);
+            console.log("Dificultad: " + tareaActual.dificultad);
             console.log("Fecha de Creación: " + tareaActual.fechaCreacion);
             console.log("Fecha de Vencimiento: " + tareaActual.fechaVencimiento);
             contadorResultados++;
-            // Aumenta el contador de coincidencias encontradas
         }
     }
     if (contadorResultados === 0) {
-        // Si no se encontró ninguna coincidencia
         console.log("\nNo se encontraron tareas que coincidan con: " + terminoBusqueda);
     }
     prompt("\nPresiona Enter para continuar...");
-    // Pausa para que el usuario lea los resultados
 }
