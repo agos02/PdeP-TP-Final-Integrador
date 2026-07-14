@@ -14,12 +14,12 @@ export class Tarea {
 
   
   //Crea una instancia de Tarea.
-  constructor(id: number, titulo: string, descripcion: string, estado: string, dificultad: string, fechaVencimiento: string = "Sin fecha"){
+  constructor(id: number, titulo: string, descripcion: string, estado: string, dificultad: string, fechaVencimiento: string = "Sin fecha", fechaCreacion?: string){
     this._id = id;
     this._titulo = titulo;
     this._descripcion = descripcion;
     this._estado = estado;
-    this._fechaCreacion = new Date().toLocaleString();
+    this._fechaCreacion = fechaCreacion ?? new Date().toLocaleString();
     this._fechaVencimiento = fechaVencimiento;
     this._dificultad = dificultad;
   }

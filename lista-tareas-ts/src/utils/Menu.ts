@@ -180,8 +180,34 @@ function mostrarDetalles(): void {
   prompt("\nPresiona Enter para continuar...");
 }
 
-// Bucle principal de ejecución del Menú por consola.
+/**
+ * Solicita el ID de una tarea y la elimina del sistema.
+ * Si existe, también se actualiza automáticamente el archivo tareas.json.
+ */
+function eliminarTarea(): void {
+  console.clear();
+  console.log("--- Eliminar Tarea ---");
 
+  const id = Number(prompt("Ingresa el ID de la tarea que deseas eliminar: "));
+
+  if (isNaN(id)) {
+    console.log("\nError: Debes ingresar un número válido.");
+    prompt("Presiona Enter para continuar...");
+    return;
+  }
+
+  const eliminada = gestor.eliminarTarea(id);
+
+  if (eliminada) {
+    console.log("\nTarea eliminada correctamente.");
+  } else {
+    console.log("\nNo existe una tarea con ese ID.");
+  }
+
+  prompt("\nPresiona Enter para continuar...");
+}
+
+// Bucle principal de ejecución del Menú por consola.
 export function iniciarMenu(): void {
   let opcion: string = "";
   do {
@@ -191,8 +217,9 @@ export function iniciarMenu(): void {
     console.log("1.Ver mis tareas");
     console.log("2.Buscar tarea");
     console.log("3.Agregar tarea");
-    console.log("4.Ver Detalles de Tareas");
-    console.log("5.Salir\n");
+    console.log("4.Eliminar tarea");
+    console.log("5.Ver Detalles de Tareas");
+    console.log("6.Salir\n");
 
     opcion = prompt("Elige una opción: ") || "";
 
@@ -219,12 +246,16 @@ export function iniciarMenu(): void {
         console.log("\n¡Tarea agregada con éxito!");
         prompt("Presiona Enter para continuar...");
         break;
-
+      
       case "4":
-        mostrarDetalles();
+        eliminarTarea();
         break;
 
       case "5":
+        mostrarDetalles();
+        break;
+
+      case "6":
         console.log("\n¡Saliendo de la aplicación! Que tengas un gran día.");
         break;
 
@@ -233,5 +264,5 @@ export function iniciarMenu(): void {
         prompt("Presiona Enter para continuar...");
         break;
     }
-  } while (opcion !== "5");
+  } while (opcion !== "6");
 }

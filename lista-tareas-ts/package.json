@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^24.7.0",
+    "@types/node": "^24.13.3",
     "@types/prompt-sync": "^4.2.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
