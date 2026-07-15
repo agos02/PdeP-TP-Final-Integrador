@@ -114,11 +114,23 @@ export class GestorTareas { // Atributos privados: control absoluto de accesos (
   public ordenarPorFechaVencimiento(): Tarea[] {
 
     return [...this._tareas].sort(
-      (a, b) =>
-        new Date(a.fechaVencimiento).getTime() -
-        new Date(b.fechaVencimiento).getTime()
+      (a, b) => {
+        if (a.fechaVencimiento === "Sin fecha" && b.fechaVencimiento === "Sin fecha") return 0;
+        if (a.fechaVencimiento === "Sin fecha") return 1; // "Sin fecha" va al final de la lista
+        if (b.fechaVencimiento === "Sin fecha") return -1;
+      
+       return new Date(a.fechaVencimiento).getTime() - new Date(b.fechaVencimiento).getTime();
+      }
     );
+  }
 
+
+  /**
+   * Devuelve una copia de las tareas ordenadas por Fecha de Creación.
+   * Al ser un ID incremental secuencial, ordenar por ID equivale a ordenar por creación.
+   */
+  public ordenarPorFechaCreacion(): Tarea[] {
+    return [...this._tareas].sort((a, b) => a.id - b.id);
   }
 
   /**
@@ -127,9 +139,9 @@ export class GestorTareas { // Atributos privados: control absoluto de accesos (
   public ordenarPorDificultad(): Tarea[] {
 
     const prioridad = {
-      "Facil": 1,
+      "Fácil": 1,
       "Medio": 2,
-      "Dificil": 3
+      "Difícil": 3
     };
 
     return [...this._tareas].sort(

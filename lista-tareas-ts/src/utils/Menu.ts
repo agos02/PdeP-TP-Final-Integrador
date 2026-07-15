@@ -215,8 +215,9 @@ function ordenarTareas(): void {
   console.log("--- Ordenar Tareas ---");
   console.log("1. Ordenar por título");
   console.log("2. Ordenar por fecha de vencimiento");
-  console.log("3. Ordenar por dificultad");
-  console.log("4. Volver");
+  console.log("3. Ordenar por fecha de creación"); 
+  console.log("4. Ordenar por dificultad");         
+  console.log("5. Volver");
 
   const opcion = prompt("Selecciona una opción: ") || "";
 
@@ -233,10 +234,14 @@ function ordenarTareas(): void {
       break;
 
     case "3":
-      tareasOrdenadas = gestor.ordenarPorDificultad();
+        tareasOrdenadas = gestor.ordenarPorFechaCreacion(); // Nueva llamada al gestor
       break;
 
     case "4":
+        tareasOrdenadas = gestor.ordenarPorDificultad();
+      break;
+
+    case "5":
       return;
 
     default:
@@ -298,11 +303,11 @@ export function iniciarMenu(): void {
         break;
       
       case "4":
-        eliminarTarea();
+        mostrarDetalles(); 
         break;
 
       case "5":
-        mostrarDetalles();
+        eliminarTarea(); 
         break;
 
       case "6":
