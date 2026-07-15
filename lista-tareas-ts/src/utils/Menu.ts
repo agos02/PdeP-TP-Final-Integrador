@@ -207,6 +207,55 @@ function eliminarTarea(): void {
   prompt("\nPresiona Enter para continuar...");
 }
 
+
+// Permite visualizar las tareas ordenadas según el criterio elegido por el usuario.
+function ordenarTareas(): void {
+
+  console.clear();
+  console.log("--- Ordenar Tareas ---");
+  console.log("1. Ordenar por título");
+  console.log("2. Ordenar por fecha de vencimiento");
+  console.log("3. Ordenar por dificultad");
+  console.log("4. Volver");
+
+  const opcion = prompt("Selecciona una opción: ") || "";
+
+  let tareasOrdenadas: Tarea[] = [];
+
+  switch (opcion) {
+
+    case "1":
+      tareasOrdenadas = gestor.ordenarPorTitulo();
+      break;
+
+    case "2":
+      tareasOrdenadas = gestor.ordenarPorFechaVencimiento();
+      break;
+
+    case "3":
+      tareasOrdenadas = gestor.ordenarPorDificultad();
+      break;
+
+    case "4":
+      return;
+
+    default:
+      console.log("Opción no válida.");
+      prompt("\nPresiona Enter para continuar...");
+      return;
+  }
+
+  console.clear();
+
+  if (tareasOrdenadas.length === 0) {
+    console.log("No hay tareas para mostrar.");
+  } else {
+    tareasOrdenadas.forEach(mostrarTareaEstilizada);
+  }
+
+  prompt("\nPresiona Enter para continuar...");
+}
+
 // Bucle principal de ejecución del Menú por consola.
 export function iniciarMenu(): void {
   let opcion: string = "";
@@ -217,9 +266,10 @@ export function iniciarMenu(): void {
     console.log("1.Ver mis tareas");
     console.log("2.Buscar tarea");
     console.log("3.Agregar tarea");
-    console.log("4.Eliminar tarea");
-    console.log("5.Ver Detalles de Tareas");
-    console.log("6.Salir\n");
+    console.log("4.Ver Detalles de Tareas");
+    console.log("5.Eliminar tarea");
+    console.log("6.Ordenar tareas");
+    console.log("7.Salir");
 
     opcion = prompt("Elige una opción: ") || "";
 
@@ -256,6 +306,10 @@ export function iniciarMenu(): void {
         break;
 
       case "6":
+        ordenarTareas();
+        break;
+
+      case "7":
         console.log("\n¡Saliendo de la aplicación! Que tengas un gran día.");
         break;
 
@@ -264,5 +318,5 @@ export function iniciarMenu(): void {
         prompt("Presiona Enter para continuar...");
         break;
     }
-  } while (opcion !== "6");
+  } while (opcion !== "7");
 }

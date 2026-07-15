@@ -1,1 +1,29 @@
-[]
+[
+  {
+    "_id": 1,
+    "_titulo": "Programacion",
+    "_descripcion": "Implementar base de datos",
+    "_estado": "Pendiente",
+    "_fechaCreacion": "14/7/2026, 08:49:54",
+    "_fechaVencimiento": "2026-07-19",
+    "_dificultad": "Medio"
+  },
+  {
+    "_id": 2,
+    "_titulo": "Base de datos",
+    "_descripcion": "hacer consultas",
+    "_estado": "En curso",
+    "_fechaCreacion": "14/7/2026, 08:50:29",
+    "_fechaVencimiento": "2026-07-23",
+    "_dificultad": "Fácil"
+  },
+  {
+    "_id": 3,
+    "_titulo": "Paradigmas",
+    "_descripcion": "Implemetar los paradigmas vistos",
+    "_estado": "Pendiente",
+    "_fechaCreacion": "14/7/2026, 08:51:12",
+    "_fechaVencimiento": "2026-07-21",
+    "_dificultad": "Difícil"
+  }
+]

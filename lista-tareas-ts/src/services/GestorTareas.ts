@@ -80,21 +80,64 @@ export class GestorTareas { // Atributos privados: control absoluto de accesos (
  * @param id ID de la tarea a eliminar.
  * @returns true si la tarea fue eliminada, false si no existía.
  */
-public eliminarTarea(id: number): boolean {
+  public eliminarTarea(id: number): boolean {
 
-  const cantidadAntes = this._tareas.length;
+    const cantidadAntes = this._tareas.length;
 
-  this._tareas = this._tareas.filter(
-    tarea => tarea.id !== id
-  );
+    this._tareas = this._tareas.filter(
+      tarea => tarea.id !== id
+    );
 
-  if (this._tareas.length < cantidadAntes) {
-    this.guardarArchivo();
-    return true;
+    if (this._tareas.length < cantidadAntes) {
+      this.guardarArchivo();
+      return true;
+    }
+
+    return false;
   }
 
-  return false;
-}
+  /**
+ * Devuelve una copia de las tareas ordenadas alfabéticamente por título.
+ * No modifica la lista original (inmutabilidad).
+ */
+  public ordenarPorTitulo(): Tarea[] {
+
+    return [...this._tareas].sort(
+      (a, b) => a.titulo.localeCompare(b.titulo)
+    );
+
+  }
+
+  /**
+ * Devuelve una copia de las tareas ordenadas por fecha de vencimiento.
+ */
+  public ordenarPorFechaVencimiento(): Tarea[] {
+
+    return [...this._tareas].sort(
+      (a, b) =>
+        new Date(a.fechaVencimiento).getTime() -
+        new Date(b.fechaVencimiento).getTime()
+    );
+
+  }
+
+  /**
+ * Devuelve una copia de las tareas ordenadas por dificultad.
+ */
+  public ordenarPorDificultad(): Tarea[] {
+
+    const prioridad = {
+      "Facil": 1,
+      "Medio": 2,
+      "Dificil": 3
+    };
+
+    return [...this._tareas].sort(
+      (a, b) =>
+        prioridad[a.dificultad as keyof typeof prioridad] -
+        prioridad[b.dificultad as keyof typeof prioridad]
+    );
+  }
 
   //Obtiene una copia de la lista de tareas para proteger el estado original. Enfoque de inmutabilidad.
   public obtenerTodas(): Tarea[] {
