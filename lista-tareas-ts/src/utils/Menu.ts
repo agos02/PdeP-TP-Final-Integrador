@@ -2,13 +2,19 @@ import promptSync from "prompt-sync";
 import { GestorTareas } from "../services/GestorTareas";
 import { Tarea } from "../models/Tarea";
 
+
+// Limpia la terminal por completo borrando el historial de scroll, cuando console.clear no funcione
+function limpiarPantalla(): void {
+  process.stdout.write('\x1Bc');
+}
+
 const prompt = promptSync();
 
 // Instanciamos el Gestor central de forma encapsulada para evitar globales.
 const gestor = new GestorTareas();
 
 
-//MÓDULOS DE VALIDACIÓN (PE: Único propósito)
+//MÓDULOS DE VALIDACIÓN (PE)
 
 
 //Solicita de forma interactiva el título de la tarea obligando a que no esté vacío.
@@ -141,7 +147,7 @@ function verTareas(): void {
 
 function buscarTarea(): void {
   console.clear();
-  console.log("--- Búsqueda de Tarea (Lógica Recursiva) ---");
+  console.log("--- Búsqueda de Tarea ---"); //(Lógica Recursiva) 
   const termino = prompt("Ingresa el título, descripción o estado de la tarea a buscar: ") || "";
 
   // Ejecuta la búsqueda de forma lógica recursiva
@@ -211,7 +217,6 @@ function eliminarTarea(): void {
 // Permite visualizar las tareas ordenadas según el criterio elegido por el usuario.
 function ordenarTareas(): void {
 
-  console.clear();
   console.log("--- Ordenar Tareas ---");
   console.log("1. Ordenar por título");
   console.log("2. Ordenar por fecha de vencimiento");
@@ -261,11 +266,45 @@ function ordenarTareas(): void {
   prompt("\nPresiona Enter para continuar...");
 }
 
+
+// Muestra el reporte estadístico de manera visual por consola
+function mostrarEstadisticas(): void {
+  //limpiarPantalla();
+    console.clear();
+    console.log("========================================");
+    console.log("       ESTADÍSTICAS DE TAREAS           ");
+    console.log("========================================");
+
+  // Llamamos al método del gestor con el nuevo nombre limpio
+  const resultadoEstadisticas = gestor.obtenerEstadisticas();
+
+   console.log("");
+   console.log("Total de Tareas registradas: " + resultadoEstadisticas.totalTareas);
+
+   console.log("");
+   console.log("Cantidad y Porcentaje por Estado:");
+   console.log("----------------------------------------");
+    Object.entries(resultadoEstadisticas.reporteEstados).forEach(([nombreEstado, infoEstado]) => {
+    console.log("• " + nombreEstado.padEnd(12) + ": " + infoEstado.cantidad + " tarea(s) (" + infoEstado.porcentaje + "%)");
+  });
+
+    console.log("");
+    console.log("Cantidad y Porcentaje por Dificultad:");
+    console.log("----------------------------------------");
+    Object.entries(resultadoEstadisticas.reporteDificultades).forEach(([nombreDificultad, infoDificultad]) => {
+    console.log("• " + nombreDificultad.padEnd(12) + ": " + infoDificultad.cantidad + " tarea(s) (" + infoDificultad.porcentaje + "%)");
+  });
+
+    console.log("");
+    console.log("========================================");
+  prompt("Presiona Enter para continuar...");
+}
+
 // Bucle principal de ejecución del Menú por consola.
 export function iniciarMenu(): void {
   let opcion: string = "";
   do {
-    console.clear();
+    limpiarPantalla();
     console.log("Bienvenido!\n");
     console.log("¿Qué deseas hacer?");
     console.log("1.Ver mis tareas");
@@ -274,7 +313,8 @@ export function iniciarMenu(): void {
     console.log("4.Ver Detalles de Tareas");
     console.log("5.Eliminar tarea");
     console.log("6.Ordenar tareas");
-    console.log("7.Salir");
+    console.log("7.Ver estadísticas de tareas"); 
+    console.log("8.Salir");;
 
     opcion = prompt("Elige una opción: ") || "";
 
@@ -315,6 +355,11 @@ export function iniciarMenu(): void {
         break;
 
       case "7":
+        limpiarPantalla();
+        mostrarEstadisticas();
+        break;
+
+      case "8":
         console.log("\n¡Saliendo de la aplicación! Que tengas un gran día.");
         break;
 
@@ -323,5 +368,5 @@ export function iniciarMenu(): void {
         prompt("Presiona Enter para continuar...");
         break;
     }
-  } while (opcion !== "7");
+  } while (opcion !== "8");
 }

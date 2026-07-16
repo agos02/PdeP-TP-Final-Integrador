@@ -195,4 +195,59 @@ export class GestorTareas { // Atributos privados: control absoluto de accesos (
     }
   }
 
+  
+   // Obtiene un reporte estadístico completo (Total, Estados y Dificultades).
+   // Implementa Programación Funcional (.reduce y .forEach) para procesar los datos de manera declarativa
+  
+  public obtenerEstadisticas() {
+    const totalTareas = this._tareas.length;
+    const estadosValidos = ["Pendiente", "En curso", "Terminada"];
+    const dificultadesValidas = ["Fácil", "Medio", "Difícil"];
+
+    // Inicializamos los acumuladores de forma declarativa con .reduce
+    const reporteEstados = estadosValidos.reduce((acumulador, estado) => {
+      acumulador[estado] = { cantidad: 0, porcentaje: 0 };
+      return acumulador;
+    }, {} as Record<string, { cantidad: number; porcentaje: number }>);
+
+    const reporteDificultades = dificultadesValidas.reduce((acumulador, dificultad) => {
+      acumulador[dificultad] = { cantidad: 0, porcentaje: 0 };
+      return acumulador;
+    }, {} as Record<string, { cantidad: number; porcentaje: number }>);
+
+    // Solo hacemos cálculos si hay tareas en la lista para evitar divisiones por cero
+    if (totalTareas > 0) {
+      
+      //Contabilizamos las cantidades recorriendo la lista de tareas una sola vez
+      this._tareas.forEach(tareaActual => {
+        if (reporteEstados[tareaActual.estado] !== undefined) {
+          reporteEstados[tareaActual.estado].cantidad++;
+        }
+        if (reporteDificultades[tareaActual.dificultad] !== undefined) {
+          reporteDificultades[tareaActual.dificultad].cantidad++;
+        }
+      });
+
+      // Calculamos los porcentajes prolijamente con un decimal (.toFixed(1))
+      estadosValidos.forEach(estado => {
+        const cantidadDeTareas = reporteEstados[estado].cantidad;
+        reporteEstados[estado].porcentaje = Number(((cantidadDeTareas / totalTareas) * 100).toFixed(1));
+      });
+
+      dificultadesValidas.forEach(dificultad => {
+        const cantidadDeTareas = reporteDificultades[dificultad].cantidad;
+        reporteDificultades[dificultad].porcentaje = Number(((cantidadDeTareas / totalTareas) * 100).toFixed(1));
+      });
+    }
+
+    // Devolvemos el objeto 
+    return {
+      totalTareas,
+      reporteEstados,
+      reporteDificultades
+    };
+  }
+
+
+
 }

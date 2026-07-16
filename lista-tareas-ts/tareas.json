@@ -25,5 +25,23 @@
     "_fechaCreacion": "14/7/2026, 08:51:12",
     "_fechaVencimiento": "2026-07-21",
     "_dificultad": "Difícil"
+  },
+  {
+    "_id": 4,
+    "_titulo": "Algoritmos y Estructuras de Datos",
+    "_descripcion": "Rendir examenes de AyED",
+    "_estado": "Terminada",
+    "_fechaCreacion": "16/7/2026, 02:09:21",
+    "_fechaVencimiento": "2026/06/12",
+    "_dificultad": "Medio"
+  },
+  {
+    "_id": 5,
+    "_titulo": "Rendir Finales",
+    "_descripcion": "Rendir finales en la mesa de Julio",
+    "_estado": "En curso",
+    "_fechaCreacion": "16/7/2026, 02:47:15",
+    "_fechaVencimiento": "2026/07/24",
+    "_dificultad": "Difícil"
   }
 ]
