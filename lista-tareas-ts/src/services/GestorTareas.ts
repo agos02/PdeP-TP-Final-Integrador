@@ -195,10 +195,8 @@ export class GestorTareas { // Atributos privados: control absoluto de accesos (
     }
   }
 
-  
-   // Obtiene un reporte estadístico completo (Total, Estados y Dificultades).
-   // Implementa Programación Funcional (.reduce y .forEach) para procesar los datos de manera declarativa
-  
+  // Obtiene un reporte estadístico completo (Total, Estados y Dificultades).
+  // Implementa Programación Funcional (.reduce y .forEach) para procesar los datos de manera declarativa
   public obtenerEstadisticas() {
     const totalTareas = this._tareas.length;
     const estadosValidos = ["Pendiente", "En curso", "Terminada"];
@@ -248,6 +246,51 @@ export class GestorTareas { // Atributos privados: control absoluto de accesos (
     };
   }
 
+  //INFERENCIA 1: Listado de todas las tareas de prioridad alta (Dificultad "Difícil").
+  public obtenerPrioridadAlta(): Tarea[] {
+    return this._tareas.filter(
+      tarea => tarea.dificultad === "Difícil" && tarea.estado !== "Terminada"
+    );
+  }
 
+   //INFERENCIA 2: Listado de tareas relacionadas a una tarea específica. Considera que están relacionadas si comparten la misma dificultad o si
+   //coinciden en alguna palabra significativa de sus títulos (ignorando conectores cortos).
+  public obtenerTareasRelacionadas(tareaObjetivo: Tarea): Tarea[] { // Extraemos palabras clave del título (ignoramos palabras de 3 letras o menos como "de", "la", "con")
+        const palabrasClave = tareaObjetivo.titulo
+      .toLowerCase()
+      .split(" ")
+      .filter(palabra => palabra.length > 3);
+
+    return this._tareas.filter(t => {
+      // Excluimos la misma tarea de la búsqueda
+      if (t.id === tareaObjetivo.id) return false;
+
+      // Criterio 1: Comparten palabras significativas en el título
+      const compartePalabras = palabrasClave.some(palabra => 
+        t.titulo.toLowerCase().includes(palabra)
+      );
+
+      // Criterio 2: Tienen la misma dificultad
+      const mismaDificultad = t.dificultad === tareaObjetivo.dificultad;
+
+      return compartePalabras || mismaDificultad;
+    });
+  }
+
+  //INFERENCIA 3: Listado de todas las tareas vencidas. Compara la fecha de vencimiento con el día de hoy.
+  public obtenerTareasVencidas(): Tarea[] {
+  const hoy = new Date();
+    
+    return this._tareas.filter(tarea => {
+      // Si no tiene fecha o ya está terminada, no puede estar vencida
+      if (tarea.fechaVencimiento === "Sin fecha" || tarea.estado === "Terminada") {
+        return false;
+      }
+      
+      const fechaVenc = new Date(tarea.fechaVencimiento);
+      // Evaluamos si el tiempo de vencimiento es menor al momento actual
+      return fechaVenc.getTime() < hoy.getTime();
+    });
+  }
 
 }

@@ -300,6 +300,59 @@ function mostrarEstadisticas(): void {
   prompt("Presiona Enter para continuar...");
 }
 
+
+// Maneja el submenú de inferencias y consultas avanzadas solicitadas
+function consultasAvanzadas(): void {
+  limpiarPantalla();
+  console.log("--- Consultas Avanzadas e Inferencias ---");
+  console.log("1. Listar tareas de prioridad alta (Difícil)");
+  console.log("2. Buscar tareas relacionadas a una tarea");
+  console.log("3. Listar todas las tareas vencidas");
+  console.log("4. Volver");
+  
+  const opcion = prompt("Elige una opción: ") || "";
+  limpiarPantalla();
+
+  switch (opcion) {
+    case "1": {
+      console.log("=== TAREAS DE PRIORIDAD ALTA ===");
+      const altas = gestor.obtenerPrioridadAlta();
+      if (altas.length === 0) console.log("No hay tareas pendientes de prioridad alta.");
+      else altas.forEach(mostrarTareaEstilizada);
+      break;
+    }
+    case "2": {
+      console.log("=== BUSCAR TAREAS RELACIONADAS ===");
+      const id = Number(prompt("Ingresa el ID de la tarea base para buscar relaciones: "));
+      const tareaBase = gestor.obtenerTodas().find(t => t.id === id);
+      
+      if (!tareaBase) {
+        console.log("\nError: No se encontró ninguna tarea con ese ID.");
+      } else {
+        console.log("\nBuscando coincidencias para: "+ tareaBase.titulo +" ");
+        const relacionadas = gestor.obtenerTareasRelacionadas(tareaBase);
+        if (relacionadas.length === 0) console.log("No se encontraron tareas relacionadas.");
+        else relacionadas.forEach(mostrarTareaEstilizada);
+      }
+      break;
+    }
+    case "3": {
+      console.log("=== TAREAS VENCIDAS ===");
+      const vencidas = gestor.obtenerTareasVencidas();
+      if (vencidas.length === 0) console.log("¡Excelente! No tenés tareas vencidas.");
+      else vencidas.forEach(mostrarTareaEstilizada);
+      break;
+    }
+    case "4":
+      return;
+    default:
+      console.log("Opción no válida.");
+      break;
+  }
+  prompt("\nPresiona Enter para continuar...");
+}
+
+
 // Bucle principal de ejecución del Menú por consola.
 export function iniciarMenu(): void {
   let opcion: string = "";
@@ -314,9 +367,10 @@ export function iniciarMenu(): void {
     console.log("5.Eliminar tarea");
     console.log("6.Ordenar tareas");
     console.log("7.Ver estadísticas de tareas"); 
-    console.log("8.Salir");;
+    console.log("8.Consultas avanzadas e inferencias"); 
+    console.log("9.Salir");
 
-    opcion = prompt("Elige una opción: ") || "";
+    opcion = prompt("\nElige una opción: ") || "";
 
     switch (opcion) {
       case "1":
@@ -351,6 +405,7 @@ export function iniciarMenu(): void {
         break;
 
       case "6":
+        limpiarPantalla();
         ordenarTareas();
         break;
 
@@ -360,6 +415,10 @@ export function iniciarMenu(): void {
         break;
 
       case "8":
+        consultasAvanzadas(); 
+        break;
+
+      case "9":
         console.log("\n¡Saliendo de la aplicación! Que tengas un gran día.");
         break;
 
@@ -368,5 +427,5 @@ export function iniciarMenu(): void {
         prompt("Presiona Enter para continuar...");
         break;
     }
-  } while (opcion !== "8");
+  } while (opcion !== "9");
 }
