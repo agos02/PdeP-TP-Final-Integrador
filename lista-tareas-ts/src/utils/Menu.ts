@@ -1,104 +1,18 @@
 import promptSync from "prompt-sync";
 import { GestorTareas } from "../services/GestorTareas";
 import { Tarea } from "../models/Tarea";
-
-
-// Limpia la terminal por completo borrando el historial de scroll, cuando console.clear no funcione
-function limpiarPantalla(): void {
-  process.stdout.write('\x1Bc');
-}
+import { solicitarTitulo, solicitarEstado, solicitarDificultad, solicitarVencimiento } from "./Validaciones";
+import { limpiarPantalla, mostrarTareaEstilizada, mostrarLista, pausar } from "./Consola";
 
 const prompt = promptSync();
-
 // Instanciamos el Gestor central de forma encapsulada para evitar globales.
 const gestor = new GestorTareas();
 
-
-//MÓDULOS DE VALIDACIÓN (PE)
-
-
-//Solicita de forma interactiva el título de la tarea obligando a que no esté vacío.
-
-function solicitarTitulo(): string {
-  while (true) {
-    const titulo = (prompt("Ingresa el título: ") || "").trim();
-    if (titulo !== "") {
-      return titulo;
-    }
-    console.log("Error: El título no puede quedar vacío. Intenta de nuevo.");
-  }
-}
-
-// Solicita y normaliza el estado de la tarea verificando opciones permitidas.
-
-function solicitarEstado(): string {
-  const estadosValidos = ["pendiente", "en curso", "terminada"];
-  while (true) {
-    const estado = (prompt("Ingresa el estado (En curso, Pendiente, Terminada): ") || "")
-      .trim()
-      .toLowerCase();
-    
-    if (estadosValidos.includes(estado)) {
-      if (estado === "pendiente") return "Pendiente";
-      if (estado === "en curso") return "En curso";
-      if (estado === "terminada") return "Terminada";
-    }
-    console.log("Error: Estado no válido. Escribe 'Pendiente', 'En curso' o 'Terminada'.");
-  }
-}
-
-//Solicita y valida que la fecha de vencimiento cumpla con un formato de fecha real.
-
-function solicitarVencimiento(): string {
-  while (true) {
-    const vencimiento = (prompt("Ingresa la fecha de vencimiento (AAAA-MM-DD, opcional): ") || "").trim();
-    if (vencimiento === "") {
-      return "Sin fecha";
-    }
-    const fechaPrueba = new Date(vencimiento);
-    if (!isNaN(fechaPrueba.getTime())) {
-      return vencimiento;
-    }
-    console.log("Error: Fecha inválida. Escribe un formato real como AAAA-MM-DD (ej: 2026-12-31).");
-  }
-}
-
-//Solicita y valida el nivel de dificultad asignado a la tarea.
-
-function solicitarDificultad(): string {
-  const dificultadesValidas = ["fácil", "facil", "medio", "difícil", "dificil"];
-  while (true) {
-    const dificultad = (prompt("Ingresa la dificultad (fácil, medio, difícil): ") || "")
-      .trim()
-      .toLowerCase();
-
-    if (dificultadesValidas.includes(dificultad)) {
-      if (dificultad === "facil" || dificultad === "fácil") return "Fácil";
-      if (dificultad === "medio") return "Medio";
-      if (dificultad === "dificil" || dificultad === "difícil") return "Difícil";
-    }
-    console.log("Error: Dificultad no válida. Escribe 'fácil', 'medio' o 'difícil'.");
-  }
-}
-
-//Procedimiento encargado de imprimir de manera prolija una tarea.
- 
-function mostrarTareaEstilizada(tarea: Tarea): void {
-  console.log(`\n--- Tarea ID: ${tarea.id} ---`);
-  console.log(`Título: ${tarea.titulo}`);
-  console.log(`Descripción: ${tarea.descripcion}`);
-  console.log(`Estado: ${tarea.estado}`);
-  console.log(`Dificultad: ${tarea.dificultad}`);
-  console.log(`Fecha de Creación: ${tarea.fechaCreacion}`);
-  console.log(`Fecha de Vencimiento: ${tarea.fechaVencimiento}`);
-}
-
 // ==========================================
-//          ACCIONES DEL MENÚ PRINCIPAL
+// FUNCIONES DE VISUALIZACIÓN
 // ==========================================
 
 //Maneja el submenú de visualización y filtrado de tareas.
-
 function verTareas(): void {
   console.clear();
   console.log("¿Qué tarea deseas ver?");
@@ -132,39 +46,11 @@ function verTareas(): void {
       return;
   }
 
-  console.clear();
-  if (tareasFiltradas.length === 0) {
-    console.log("No hay tareas para mostrar en esta categoría.");
-  } else {
-    // PF: Uso de función de orden superior para iterar de manera declarativa
-    tareasFiltradas.forEach(mostrarTareaEstilizada);
-  }
-
-  prompt("\nPresiona Enter para continuar...");
+  limpiarPantalla();
+  mostrarLista(tareasFiltradas);
+  pausar();
 }
-
-// Solicita un término de búsqueda y ejecuta el algoritmo recursivo del gestor.
-
-function buscarTarea(): void {
-  console.clear();
-  console.log("--- Búsqueda de Tarea ---"); //(Lógica Recursiva) 
-  const termino = prompt("Ingresa el título, descripción o estado de la tarea a buscar: ") || "";
-
-  // Ejecuta la búsqueda de forma lógica recursiva
-  const resultados = gestor.buscarRecursivo(termino);
-
-  if (resultados.length === 0) {
-    console.log(`\nNo se encontraron tareas que coincidan con: "${termino}"`);
-  } else {
-    console.log(`\nSe encontraron ${resultados.length} coincidencia(s):`);
-    resultados.forEach(mostrarTareaEstilizada);
-  }
-
-  prompt("\nPresiona Enter para continuar...");
-}
-
 //Consulta de detalles interactivos ingresando texto libre.
-
 function mostrarDetalles(): void {
   console.clear();
   const estadoBuscado = prompt("Ingresa el estado de la tarea que quieres ver (Pendiente, Terminada, En Curso, Todas): ") || "";
@@ -183,13 +69,33 @@ function mostrarDetalles(): void {
     tareasFiltradas.forEach(mostrarTareaEstilizada);
   }
 
-  prompt("\nPresiona Enter para continuar...");
+  pausar();
 }
 
-/**
- * Solicita el ID de una tarea y la elimina del sistema.
- * Si existe, también se actualiza automáticamente el archivo tareas.json.
- */
+// ==========================================
+// ACCIONES SOBRE TAREAS
+// ==========================================
+
+// Solicita un término de búsqueda y ejecuta el algoritmo recursivo del gestor.
+function buscarTarea(): void {
+  console.clear();
+  console.log("--- Búsqueda de Tarea ---"); //(Lógica Recursiva) 
+  const termino = prompt("Ingresa el título, descripción o estado de la tarea a buscar: ") || "";
+
+  // Ejecuta la búsqueda de forma lógica recursiva
+  const resultados = gestor.buscarRecursivo(termino);
+
+  if (resultados.length === 0) {
+    console.log(`\nNo se encontraron tareas que coincidan con: "${termino}"`);
+  } else {
+    console.log(`\nSe encontraron ${resultados.length} coincidencia(s):`);
+    resultados.forEach(mostrarTareaEstilizada);
+  }
+
+  pausar();
+}
+
+// Solicita el ID de la tarea a eliminar y llama al gestor para realizar la acción.
 function eliminarTarea(): void {
   console.clear();
   console.log("--- Eliminar Tarea ---");
@@ -210,9 +116,8 @@ function eliminarTarea(): void {
     console.log("\nNo existe una tarea con ese ID.");
   }
 
-  prompt("\nPresiona Enter para continuar...");
+  pausar();
 }
-
 
 // Permite visualizar las tareas ordenadas según el criterio elegido por el usuario.
 function ordenarTareas(): void {
@@ -251,7 +156,7 @@ function ordenarTareas(): void {
 
     default:
       console.log("Opción no válida.");
-      prompt("\nPresiona Enter para continuar...");
+      pausar();
       return;
   }
 
@@ -263,9 +168,12 @@ function ordenarTareas(): void {
     tareasOrdenadas.forEach(mostrarTareaEstilizada);
   }
 
-  prompt("\nPresiona Enter para continuar...");
+  pausar();
 }
 
+// ==========================================
+// ESTADÍSTICAS
+// ==========================================
 
 // Muestra el reporte estadístico de manera visual por consola
 function mostrarEstadisticas(): void {
@@ -297,9 +205,12 @@ function mostrarEstadisticas(): void {
 
     console.log("");
     console.log("========================================");
-  prompt("Presiona Enter para continuar...");
+    pausar();
 }
 
+// ==========================================
+// CONSULTAS AVANZADAS
+// ==========================================
 
 // Maneja el submenú de inferencias y consultas avanzadas solicitadas
 function consultasAvanzadas(): void {
@@ -349,9 +260,12 @@ function consultasAvanzadas(): void {
       console.log("Opción no válida.");
       break;
   }
-  prompt("\nPresiona Enter para continuar...");
+  pausar();
 }
 
+// ==========================================
+// MENÚ PRINCIPAL
+// ==========================================
 
 // Bucle principal de ejecución del Menú por consola.
 export function iniciarMenu(): void {
@@ -393,7 +307,7 @@ export function iniciarMenu(): void {
         gestor.agregarTarea(titulo, descripcion, estado, dificultad, vencimiento);
         
         console.log("\n¡Tarea agregada con éxito!");
-        prompt("Presiona Enter para continuar...");
+        pausar();
         break;
       
       case "4":
@@ -424,7 +338,7 @@ export function iniciarMenu(): void {
 
       default:
         console.log("Opción no válida. Intenta de nuevo.");
-        prompt("Presiona Enter para continuar...");
+        pausar();
         break;
     }
   } while (opcion !== "9");
