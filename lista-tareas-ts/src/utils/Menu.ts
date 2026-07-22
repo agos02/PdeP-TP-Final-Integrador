@@ -79,7 +79,9 @@ function mostrarDetalles(): void {
 // Solicita un término de búsqueda y ejecuta el algoritmo recursivo del gestor.
 function buscarTarea(): void {
   console.clear();
-  console.log("--- Búsqueda de Tarea ---"); //(Lógica Recursiva) 
+  console.log("--- Búsqueda de Tarea ---"); //(Lógica Recursiva)
+
+
   const termino = prompt("Ingresa el título, descripción o estado de la tarea a buscar: ") || "";
 
   // Ejecuta la búsqueda de forma lógica recursiva

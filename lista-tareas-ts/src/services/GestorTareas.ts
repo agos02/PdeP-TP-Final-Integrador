@@ -19,14 +19,15 @@ export class GestorTareas { // Atributos privados: control absoluto de accesos (
 
   // Guarda las tareas en el archivo JSON para persistencia de datos
   private guardarArchivo(): void {
-      writeFileSync(
+      writeFileSync( //Sirve para escribir datos en un archivo de manera sincrónica. En este caso, se utiliza para guardar la lista de tareas en formato JSON.
       this._archivo,
+      //JSON.stringify convierte un objeto JavaScript en una cadena JSON. El segundo parámetro es null para no alterar la estructura, y el tercero es 2 para agregar sangría y hacer el JSON más legible.
       JSON.stringify(this._tareas, null, 2),
       "utf8"
     );
   }
 
-  // Carga las tareas desde el archivo JSON al iniciar la aplicación
+  //Carga las tareas desde el archivo JSON al iniciar la aplicación. Si el archivo no existe o está vacío, no hace nada.
   private cargarArchivo(): void {
     if (!existsSync(this._archivo)) {
       return;
@@ -38,6 +39,7 @@ export class GestorTareas { // Atributos privados: control absoluto de accesos (
       return;
     }
 
+    // Convierte el contenido JSON en objetos Tarea y los almacena en la lista interna
     const datos = JSON.parse(contenido);
     this._tareas = datos.map((tarea: any) => {
 
@@ -55,6 +57,7 @@ export class GestorTareas { // Atributos privados: control absoluto de accesos (
 
   });
 
+    // Determina el siguiente ID disponible para nuevas tareas. Se calcula como el máximo ID existente más uno.
     if (this._tareas.length > 0) {
       this._siguienteId =
       Math.max(...this._tareas.map(t => t.id)) + 1;
@@ -100,6 +103,7 @@ export class GestorTareas { // Atributos privados: control absoluto de accesos (
  * Devuelve una copia de las tareas ordenadas alfabéticamente por título.
  * No modifica la lista original (inmutabilidad).
  */
+
   public ordenarPorTitulo(): Tarea[] {
 
     return [...this._tareas].sort(
@@ -115,7 +119,7 @@ export class GestorTareas { // Atributos privados: control absoluto de accesos (
 
     return [...this._tareas].sort(
       (a, b) => {
-        if (a.fechaVencimiento === "Sin fecha" && b.fechaVencimiento === "Sin fecha") return 0;
+        if (a.fechaVencimiento === "Sin fecha" && b.fechaVencimiento === "Sin fecha") return 0; // Si ambos son "Sin fecha", se consideran iguales
         if (a.fechaVencimiento === "Sin fecha") return 1; // "Sin fecha" va al final de la lista
         if (b.fechaVencimiento === "Sin fecha") return -1;
       
@@ -136,14 +140,13 @@ export class GestorTareas { // Atributos privados: control absoluto de accesos (
   /**
  * Devuelve una copia de las tareas ordenadas por dificultad.
  */
-  public ordenarPorDificultad(): Tarea[] {
 
+  public ordenarPorDificultad(): Tarea[] {
     const prioridad = {
       "Fácil": 1,
       "Medio": 2,
       "Difícil": 3
     };
-
     return [...this._tareas].sort(
       (a, b) =>
         prioridad[a.dificultad as keyof typeof prioridad] -
@@ -163,8 +166,7 @@ export class GestorTareas { // Atributos privados: control absoluto de accesos (
     );
   }
 
-  //Determina si una tarea cumple con la condición de contener el término buscado. Programcion Lógica.
-
+  //Determina si una tarea cumple con la condición de contener el término buscado.
   private esCoincidencia(tarea: Tarea, termino: string): boolean {
     const terminoMin = termino.toLowerCase();
     return (
@@ -175,8 +177,6 @@ export class GestorTareas { // Atributos privados: control absoluto de accesos (
   }
 
   //Búsqueda lógica recursiva. Aplica recursión bien estructurada con caso base claro y sin bucles imperativos.
- 
-  
   public buscarRecursivo(termino: string, lista: Tarea[] = this._tareas): Tarea[] {
     if (lista.length === 0) { // Caso base de la recursión: si la lista está vacía, no hay nada más que buscar.
       return [];
@@ -256,16 +256,17 @@ export class GestorTareas { // Atributos privados: control absoluto de accesos (
    //INFERENCIA 2: Listado de tareas relacionadas a una tarea específica. Considera que están relacionadas si comparten la misma dificultad o si
    //coinciden en alguna palabra significativa de sus títulos (ignorando conectores cortos).
   public obtenerTareasRelacionadas(tareaObjetivo: Tarea): Tarea[] { // Extraemos palabras clave del título (ignoramos palabras de 3 letras o menos como "de", "la", "con")
-        const palabrasClave = tareaObjetivo.titulo
-      .toLowerCase()
-      .split(" ")
-      .filter(palabra => palabra.length > 3);
+      const palabrasClave = tareaObjetivo.titulo
+      .toLowerCase() //Convierte el título a minúsculas para una comparación insensible a mayúsculas.
+      .split(" ") //Divide el título en palabras individuales usando el espacio como delimitador.
+      .filter(palabra => palabra.length > 3); // Filtra las palabras para quedarse solo con aquellas que tengan más de 3 letras, eliminando conectores cortos.
 
-    return this._tareas.filter(t => {
-      // Excluimos la misma tarea de la búsqueda
+    return this._tareas.filter(t => { //Filtra la lista de tareas para encontrar aquellas que cumplan con los criterios de relación.
+      //Excluimos la misma tarea de la búsqueda
       if (t.id === tareaObjetivo.id) return false;
 
-      // Criterio 1: Comparten palabras significativas en el título
+      //Criterio 1: Comparten palabras significativas en el título
+      //Some devuelve true si al menos una palabra clave está presente en el título de la tarea actual.
       const compartePalabras = palabrasClave.some(palabra => 
         t.titulo.toLowerCase().includes(palabra)
       );

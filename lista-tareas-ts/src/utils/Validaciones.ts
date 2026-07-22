@@ -2,6 +2,7 @@ import promptSync from "prompt-sync";
 const prompt = promptSync();
 
 //MÓDULOS DE VALIDACIÓN (PE)
+//Se evita repetir código y facilita el mantenimiento.
 
 //Solicita de forma interactiva el título de la tarea obligando a que no esté vacío.
 export function solicitarTitulo(): string {
